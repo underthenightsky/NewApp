@@ -1,25 +1,30 @@
-import React, {useCallback} from 'react';
-import {View, StyleSheet, Switch, Text} from 'react-native';
+import React, { useCallback, useMemo } from "react";
+import {
+  SafeAreaView,
+  View,
+  StyleSheet,
+  Button,
+  Pressable,
+  Text,
+  Alert,
+} from "react-native";
+import { Task } from "./models/Task";
+import { Project, useQuery, useRealm } from "./models/Project";
+import IntroText from "./components/IntroText";
+import AddTaskForm from "./components/AddTaskForm";
+import TaskList from "./components/TaskList";
+import colors from "./styles/colors";
 
-import {Task} from '../models/Task';
-import {IntroText} from './IntroText';
-import {AddTaskForm} from './AddTaskForm';
-import TaskList from './TaskList';
-
-import {useRealm} from '@realm/react';
-import {shadows} from '../styles/shadows';
-
-export const TaskManager: React.FC<{
-  tasks: Realm.Results<Task & Realm.Object>;
-  userId?: string;
-  setShowDone: (showDone: boolean) => void;
-  showDone: boolean;
-}> = ({tasks, userId, setShowDone, showDone}) => {
+export function HomeScreen({ navigation }) {
   const realm = useRealm();
+  const result = useQuery("Task");
+  const resultProject = useQuery("Project");
+  const tasks = useMemo(() => result.sorted("createdAt"), [result]);
+  console.log(resultProject);
 
   const handleAddTask = useCallback(
-    (description: string): void => {
-      if (!description) {
+    ({ description, project }) => {
+      if (!description || !project) {
         return;
       }
 
@@ -30,18 +35,39 @@ export const TaskManager: React.FC<{
       // may occasionally be online during short time spans we want to increase the probability
       // of sync participants to successfully sync everything in the transaction, otherwise
       // no changes propagate and the transaction needs to start over when connectivity allows.
-      realm.write(() => {
-        return realm.create(Task, {
-          description,
-          userId: userId ?? 'SYNC_DISABLED',
+
+      try {
+        realm.write(() => {
+          // check for project
+          const q = `name == '${project}'`;
+          let projectResults = realm.objects("Project").filtered(q);
+
+          // if needed create it
+          if (!projectResults.length) {
+            projectResults = [
+              realm.create(
+                "Project",
+                new Project({ name: project, tasks: [] })
+              ),
+            ];
+          }
+
+          const projectO = projectResults[0];
+
+          const task = realm.create("Task", new Task({ description }));
+          projectO.tasks.push(task);
+
+          Alert.alert("Success Creating New Task");
         });
-      });
+      } catch (e) {
+        Alert.alert("Error Creating Task", e.message);
+      }
     },
-    [realm, userId],
+    [realm]
   );
 
   const handleToggleTaskStatus = useCallback(
-    (task: Task & Realm.Object): void => {
+    (task) => {
       realm.write(() => {
         // Normally when updating a record in a NoSQL or SQL database, we have to type
         // a statement that will later be interpreted and used as instructions for how
@@ -61,11 +87,11 @@ export const TaskManager: React.FC<{
       //   task.isComplete = !task.isComplete;
       // });
     },
-    [realm],
+    [realm]
   );
 
   const handleDeleteTask = useCallback(
-    (task: Task & Realm.Object): void => {
+    (task) => {
       realm.write(() => {
         realm.delete(task);
 
@@ -73,12 +99,30 @@ export const TaskManager: React.FC<{
         // realm?.delete(realm?.objectForPrimaryKey('Task', id));
       });
     },
-    [realm],
+    [realm]
   );
 
   return (
-    <>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.content}>
+        <View style={{ margin: 12, marginBottom: 22 }}>
+          <Pressable
+            style={{
+              backgroundColor: colors.purple,
+              justifyContent: "center",
+              height: 45,
+              alignItems: "center",
+              marginLeft: 20,
+              borderRadius: 5,
+            }}
+            title="See All Projects"
+            onPress={() => navigation.navigate("Projects")}
+          >
+            <Text style={{ fontSize: 17, fontWeight: "bold", color: "white" }}>
+              See All Projects
+            </Text>
+          </Pressable>
+        </View>
         <AddTaskForm onSubmit={handleAddTask} />
         {tasks.length === 0 ? (
           <IntroText />
@@ -90,32 +134,16 @@ export const TaskManager: React.FC<{
           />
         )}
       </View>
-      <View style={styles.switchPanel}>
-        <Text style={styles.switchPanelText}>Show Completed?</Text>
-        <Switch value={showDone} onValueChange={() => setShowDone(!showDone)} />
-      </View>
-    </>
+    </SafeAreaView>
   );
-};
-
+}
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.darkBlue,
+  },
   content: {
     flex: 1,
-    paddingTop: 20,
     paddingHorizontal: 20,
-  },
-  switchPanel: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 10,
-    marginBottom: 10,
-    ...shadows,
-  },
-  switchPanelText: {
-    flex: 1,
-    fontSize: 16,
-    padding: 5,
   },
 });

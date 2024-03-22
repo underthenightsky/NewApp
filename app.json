@@ -5,6 +5,14 @@
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "android": {
+      "package": "com.josephkurianjohn49.MyAwesomeRealmApp"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e240af48-3aec-45a7-a3aa-9c224b22201d"
+      }
+    }
   }
 }

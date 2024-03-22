@@ -7,22 +7,31 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@react-native-community/datetimepicker": "^6.7.3",
+    "@react-native-picker/picker": "^2.6.1",
+    "@react-navigation/native": "^6.1.17",
+    "@react-navigation/native-stack": "^6.9.26",
     "@realm/react": "^0.6.0",
-    "expo": "^49.0.8",
-    "expo-dev-client": "~2.4.8",
-    "expo-splash-screen": "~0.20.5",
-    "expo-status-bar": "~1.6.0",
+    "expo": "^48.0.0",
+    "expo-dev-client": "~2.2.1",
+    "expo-splash-screen": "~0.18.2",
+    "expo-status-bar": "~1.4.4",
     "react": "18.2.0",
-    "react-native": "0.72.4",
+    "react-native": "0.71.3",
     "react-native-get-random-values": "~1.9.0",
-    "realm": "12.0.0"
+    "react-native-modal-datetime-picker": "^17.1.0",
+    "realm": "^12.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.5",
+    "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-decorators": "^7.22.5",
     "@realm/babel-plugin": "^0.1.1",
-    "@types/react": "~18.2.13",
-    "typescript": "^5.1.3"
+    "@types/react": "~18.0.27",
+    "@types/react-native": "^0.73.0",
+    "typescript": "^4.9.4"
+  },
+  "resolutions": {
+    "react-native-picker-select/**/@react-native-picker/picker": "2.6.1"
   },
   "license": "Apache-2.0",
   "private": true
